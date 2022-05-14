@@ -80,11 +80,21 @@ class EmployeeController extends Controller
     {
 // dd($r->all());
         if ($r->ajax()) {
+            // dd($r->search['value']);
             $list_data = DB::table('employees AS EMP')
                         ->join('companies AS CMP',function($join){
                             $join->on('CMP.id','=','EMP.company_id');
                         })
                         ->select('EMP.id as emp_id',DB::raw('CONCAT(EMP.first_name," ",EMP.last_name) AS name'), 'EMP.first_name','EMP.last_name','EMP.phone as EmpPhone','EMP.email as EmpEmail','EMP.city','CMP.name as company_name','CMP.logo','EMP.joining_date as join_date')
+                        ->when(isset($r->search['value']),function($q) use($r){
+                            $q->where('EMP.first_name','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('EMP.last_name','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('EMP.phone','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('EMP.email','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('EMP.city','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('EMP.joining_date','like',"%" . $r->search['value'] . "%")
+                            ->orWhere('CMP.name','like',"%" . $r->search['value'] . "%");
+                        })
                         ->get();
 
             return DataTables::of($list_data)
@@ -93,9 +103,23 @@ class EmployeeController extends Controller
                     if (request()->has('name')) {
                         $query->where('name', 'like', "%" . request('name') . "%");
                     }
-
-                    if (request()->has('email')) {
-                        $query->where('email', 'like', "%" . request('email') . "%");
+                    if (request()->has('EmpPhone')) {
+                        $query->where('EmpPhone', 'like', "%" . request('EmpPhone') . "%");
+                    }
+                    if (request()->has('name')) {
+                        $query->where('name', 'like', "%" . request('name') . "%");
+                    }
+                    if (request()->has('EmpEmail')) {
+                        $query->where('EmpEmail', 'like', "%" . request('EmpEmail') . "%");
+                    }
+                    if (request()->has('city')) {
+                        $query->where('city', 'like', "%" . request('city') . "%");
+                    }
+                    if (request()->has('company_name')) {
+                        $query->where('company_name', 'like', "%" . request('company_name') . "%");
+                    }
+                    if (request()->has('join_date')) {
+                        $query->where('join_date', 'like', "%" . request('join_date') . "%");
                     }
                 })
                 ->make(true);
